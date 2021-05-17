@@ -1,6 +1,8 @@
 # MERIT
 
+<p align="center">
 <img src="./merit.png" width="600">
+</p>
 
 A PyTorch implementation of our IJCAI-21 paper [Multi-Scale Contrastive Siamese Networks for Self-Supervised Graph Representation Learning](https://arxiv.org/abs/2105.05682).
 
@@ -20,12 +22,12 @@ pip install -r requirements.txt
 ## Usage
 Here we provide the implementation of MERIT along with Cora and Citeseer dataset.
 
-To train and evaluate on Cora:
++ To train and evaluate on Cora:
 ```
 python run_cora.py
 ```
 
-To train and evaluate on Citeseer:
++ To train and evaluate on Citeseer:
 ```
 python run_citeseer.py
 ```
