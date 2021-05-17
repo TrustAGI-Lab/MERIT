@@ -2,79 +2,8 @@ import numpy as np
 import pickle as pkl
 import networkx as nx
 import scipy.sparse as sp
-from scipy.sparse.linalg.eigen.arpack import eigsh
 import sys
 import torch
-import torch.nn as nn
-from sklearn.preprocessing import OneHotEncoder
-import random
-
-
-def parse_skipgram(fname):
-    with open(fname) as f:
-        toks = list(f.read().split())
-    nb_nodes = int(toks[0])
-    nb_features = int(toks[1])
-    ret = np.empty((nb_nodes, nb_features))
-    it = 2
-    for i in range(nb_nodes):
-        cur_nd = int(toks[it]) - 1
-        it += 1
-        for j in range(nb_features):
-            cur_ft = float(toks[it])
-            ret[cur_nd][j] = cur_ft
-            it += 1
-    return ret
-
-
-def process_tu(data, nb_nodes):
-    nb_graphs = len(data)
-    ft_size = data.num_features
-
-    features = np.zeros((nb_graphs, nb_nodes, ft_size))
-    adjacency = np.zeros((nb_graphs, nb_nodes, nb_nodes))
-    labels = np.zeros(nb_graphs)
-    sizes = np.zeros(nb_graphs, dtype=np.int32)
-    masks = np.zeros((nb_graphs, nb_nodes))
-       
-    for g in range(nb_graphs):
-        sizes[g] = data[g].x.shape[0]
-        features[g, :sizes[g]] = data[g].x
-        labels[g] = data[g].y[0]
-        masks[g, :sizes[g]] = 1.0
-        e_ind = data[g].edge_index
-        coo = sp.coo_matrix((np.ones(e_ind.shape[1]), (e_ind[0, :], e_ind[1, :])), shape=(nb_nodes, nb_nodes))
-        adjacency[g] = coo.todense()
-
-    return features, adjacency, labels, sizes, masks
-
-
-def micro_f1(logits, labels):
-    preds = torch.round(nn.Sigmoid()(logits))   
-    preds = preds.long()
-    labels = labels.long()
-    tp = torch.nonzero(preds * labels).shape[0] * 1.0
-    tn = torch.nonzero((preds - 1) * (labels - 1)).shape[0] * 1.0
-    fp = torch.nonzero(preds * (labels - 1)).shape[0] * 1.0
-    fn = torch.nonzero((preds - 1) * labels).shape[0] * 1.0
-    prec = tp / (tp + fp)
-    rec = tp / (tp + fn)
-    f1 = (2 * prec * rec) / (prec + rec)
-    return f1
-
-
-def adj_to_bias(adj, sizes, nhood=1):
-    nb_graphs = adj.shape[0]
-    mt = np.empty(adj.shape)
-    for g in range(nb_graphs):
-        mt[g] = np.eye(adj.shape[1])
-        for _ in range(nhood):
-            mt[g] = np.matmul(mt[g], (adj[g] + np.eye(adj.shape[1])))
-        for i in range(sizes[g]):
-            for j in range(sizes[g]):
-                if mt[g][i][j] > 0.0:
-                    mt[g][i][j] = 1.0
-    return -1e9 * (1.0 - mt)
 
 
 def parse_index_file(filename):
@@ -84,13 +13,7 @@ def parse_index_file(filename):
     return index
 
 
-def sample_mask(idx, l):
-    mask = np.zeros(l)
-    mask[idx] = 1
-    return np.array(mask, dtype=np.bool)
-
-
-def load_data(dataset_str): # {'pubmed', 'citeseer', 'cora'}
+def load_data(dataset_str):
     names = ['x', 'y', 'tx', 'ty', 'allx', 'ally', 'graph']
     objects = []
     for i in range(len(names)):
@@ -148,17 +71,6 @@ def sparse_to_tuple(sparse_mx, insert_batch=False):
         sparse_mx = to_tuple(sparse_mx)
 
     return sparse_mx
-
-
-def standardize_data(f, train_mask):
-    f = f.todense()
-    mu = f[train_mask == True, :].mean(axis=0)
-    sigma = f[train_mask == True, :].std(axis=0)
-    f = f[:, np.squeeze(np.array(sigma > 0))]
-    mu = f[train_mask == True, :].mean(axis=0)
-    sigma = f[train_mask == True, :].std(axis=0)
-    f = (f - mu) / sigma
-    return f
 
 
 def preprocess_features(features):

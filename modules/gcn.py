@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+##############################################
+# Forked from https://github.com/PetarV-/DGI #
+##############################################
+
 class GCNLayer(nn.Module):
     
     def __init__(self, in_ft, out_ft, act='prelu', bias=True):
@@ -25,7 +29,6 @@ class GCNLayer(nn.Module):
             if m.bias is not None:
                 m.bias.data.fill_(0.0)
 
-    # Shape of seq: (batch, nodes, features)
     def forward(self, seq, adj, sparse=False):
         seq_fts = self.fc(seq)
         if sparse:
@@ -34,5 +37,5 @@ class GCNLayer(nn.Module):
             out = torch.bmm(adj, seq_fts)
         if self.bias is not None:
             out += self.bias
-        
+
         return self.act(out)

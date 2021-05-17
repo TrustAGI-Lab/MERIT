@@ -2,19 +2,15 @@
 import numpy as np
 import scipy.sparse as sp
 import torch
-import torch.nn as nn
 import random
 import argparse
 import os
 import warnings
 warnings.filterwarnings("ignore")
-
 from utils import process
 from utils import aug
-from utils import load_npz
 from modules.gcn import GCNLayer
 from net.merit import MERIT
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
@@ -31,30 +27,31 @@ def str_to_bool(value):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--device', type=str, default='cuda:0', help='')
-parser.add_argument('--data', type=str, default='citeseer', help='')
-parser.add_argument('--runs', type=int, default=1, help='number of runs')
-parser.add_argument('--eval_every', type=int, default=10, help='how many epochs to evaluate')
-parser.add_argument('--epochs', type=int, default=500, help='number of epochs')
-parser.add_argument('--lr', type=float, default=3e-4, help='learning rate')
-parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
-parser.add_argument('--batch_size', type=int, default=4, help='batch size')
-parser.add_argument('--sample_size', type=int, default=2000, help='batch sample size')
-parser.add_argument('--patience', type=int, default=100, help='training patience')
-parser.add_argument('--sparse', type=str_to_bool, default=True, help='')
+parser.add_argument('--device', type=str, default='cuda:0')
+parser.add_argument('--seed', type=int, default=2021)
+parser.add_argument('--data', type=str, default='citeseer')
+parser.add_argument('--runs', type=int, default=1)
+parser.add_argument('--eval_every', type=int, default=10)
+parser.add_argument('--epochs', type=int, default=500)
+parser.add_argument('--lr', type=float, default=3e-4)
+parser.add_argument('--weight_decay', type=float, default=0.0)
+parser.add_argument('--batch_size', type=int, default=4)
+parser.add_argument('--sample_size', type=int, default=2000)
+parser.add_argument('--patience', type=int, default=100)
+parser.add_argument('--sparse', type=str_to_bool, default=True)
 
-parser.add_argument('--input_dim', type=int, default=3703, help='input dim of the data')
-parser.add_argument('--gnn_dim', type=int, default=512, help='otuput dim of the gnn encoder')
-parser.add_argument('--proj_dim', type=int, default=512, help='otuput dim of the projector')
-parser.add_argument('--proj_hid', type=int, default=4096, help='hidden dim of the projector')
-parser.add_argument('--pred_dim', type=int, default=512, help='otuput dim of the predictor')
-parser.add_argument('--pred_hid', type=int, default=4096, help='hidden dim of the predictor')
-parser.add_argument('--momentum', type=float, default=0.8, help='updating momentum')
-parser.add_argument('--beta', type=float, default=0.6, help='balancing factor')
-parser.add_argument('--alpha', type=float, default=0.005, help='diffusion related hyperparam')
-parser.add_argument('--drop_edge', type=float, default=0.4, help='drop edge rate')
-parser.add_argument('--drop_feat1', type=float, default=0.4, help='drop feature rate 1')
-parser.add_argument('--drop_feat2', type=float, default=0.4, help='drop feature rate 2')
+parser.add_argument('--input_dim', type=int, default=3703)
+parser.add_argument('--gnn_dim', type=int, default=512)
+parser.add_argument('--proj_dim', type=int, default=512)
+parser.add_argument('--proj_hid', type=int, default=4096)
+parser.add_argument('--pred_dim', type=int, default=512)
+parser.add_argument('--pred_hid', type=int, default=4096)
+parser.add_argument('--momentum', type=float, default=0.8)
+parser.add_argument('--beta', type=float, default=0.6)
+parser.add_argument('--alpha', type=float, default=0.05)
+parser.add_argument('--drop_edge', type=float, default=0.4)
+parser.add_argument('--drop_feat1', type=float, default=0.4)
+parser.add_argument('--drop_feat2', type=float, default=0.4)
 
 args = parser.parse_args()
 torch.set_num_threads(4)
@@ -78,14 +75,11 @@ def evaluation(adj, diff, feat, gnn, idx_train, idx_test, sparse):
 
 if __name__ == '__main__':
 
-    # seed config
-    seed = 2021
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
 
-    # training and model config
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
     n_runs = args.runs
@@ -150,7 +144,7 @@ if __name__ == '__main__':
 
     result_over_runs = []
     
-    # Init models
+    # Initiate models
     model = GCNLayer(input_size, gnn_output_size)
     merit = MERIT(gnn=model,
                   feat_size=input_size,
@@ -177,7 +171,7 @@ if __name__ == '__main__':
             bf = features[idx: idx + sample_size]
 
             aug_adj1 = aug.aug_random_edge(ba, drop_percent=drop_edge_rate_1)
-            aug_adj2 = bd  # ba?
+            aug_adj2 = bd
             aug_features1 = aug.aug_feature_dropout(bf, drop_percent=drop_feature_rate_1)
             aug_features2 = aug.aug_feature_dropout(bf, drop_percent=drop_feature_rate_2)
 
@@ -209,11 +203,10 @@ if __name__ == '__main__':
                 patience_count = 0
             else:
                 patience_count += 1
-                print('ES count:' + str(patience_count))
             results.append(acc)
             print('\t epoch {:03d} | loss {:.5f} | clf test acc {:.5f}'.format(epoch, loss.item(), acc))
             if patience_count >= patience:
-                print('Early Stopping!!!')
+                print('Early Stopping.')
                 break
             
     result_over_runs.append(max(results))

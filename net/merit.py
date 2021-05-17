@@ -1,13 +1,11 @@
 import torch
 import torch.nn as nn
 import copy
-import random
-from functools import wraps
 import torch.nn.functional as F
 
 
 class MLP(nn.Module):
-    
+
     def __init__(self, inp_size, outp_size, hidden_size):
         super().__init__()
         self.net = nn.Sequential(
@@ -56,10 +54,6 @@ def update_moving_average(ema_updater, ma_model, current_model):
     for current_params, ma_params in zip(current_model.parameters(), ma_model.parameters()):
         old_weight, up_weight = ma_params.data, current_params.data
         ma_params.data = ema_updater.update_average(old_weight, up_weight)
-
-
-def get_module_device(module):
-    return next(module.parameters()).device
 
 
 def set_requires_grad(model, val):

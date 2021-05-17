@@ -1,13 +1,11 @@
 import torch
 import copy
 import random
-import pdb
 import scipy.sparse as sp
 import numpy as np
 
 
 def aug_random_mask(input_feature, drop_percent=0.2):
-    
     node_num = input_feature.shape[1]
     mask_num = int(node_num * drop_percent)
     node_idx = [i for i in range(node_num)]
@@ -20,7 +18,6 @@ def aug_random_mask(input_feature, drop_percent=0.2):
 
 
 def aug_random_edge(input_adj, drop_percent = 0.2):
-            
     percent = drop_percent / 2
     row_idx, col_idx = input_adj.nonzero()
     num_drop = int(len(row_idx)*percent)
@@ -29,11 +26,11 @@ def aug_random_edge(input_adj, drop_percent = 0.2):
     edges = dict(zip(edge_index, zip(row_idx, col_idx)))
     drop_idx = random.sample(edge_index, k = num_drop)
     
-    list(map(edges.__delitem__, filter(edges.__contains__,drop_idx)))
+    list(map(edges.__delitem__, filter(edges.__contains__, drop_idx)))
     
     new_edges = list(zip(*list(edges.values())))
-    new_row_idx =  new_edges[0]
-    new_col_idx =  new_edges[1]
+    new_row_idx = new_edges[0]
+    new_col_idx = new_edges[1]
     data = np.ones(len(new_row_idx)).tolist()
     
     new_adj = sp.csr_matrix((data, (new_row_idx, new_col_idx)), shape = input_adj.shape)
@@ -52,7 +49,6 @@ def aug_random_edge(input_adj, drop_percent = 0.2):
 
 
 def aug_drop_node(input_fea, input_adj, drop_percent=0.2):
-
     input_adj = torch.tensor(input_adj.todense().tolist())
     input_fea = input_fea.squeeze(0)
 
@@ -72,7 +68,6 @@ def aug_drop_node(input_fea, input_adj, drop_percent=0.2):
 
 
 def aug_subgraph(input_fea, input_adj, drop_percent=0.2):
-    
     input_adj = torch.tensor(input_adj.todense().tolist())
     input_fea = input_fea.squeeze(0)
     node_num = input_fea.shape[0]
@@ -149,7 +144,6 @@ def gdc(A: sp.csr_matrix, alpha: float, eps: float):
 
 
 def delete_row_col(input_matrix, drop_list, only_row=False):
-
     remain_list = [i for i in range(input_matrix.shape[0]) if i not in drop_list]
     out = input_matrix[remain_list, :]
     if only_row:
