@@ -1,6 +1,6 @@
 # MERIT
 
-<img src="./merit.png" width="200">
+<img src="./merit.png" width="600">
 
 A PyTorch implementation of our IJCAI-21 paper [Multi-Scale Contrastive Siamese Networks for Self-Supervised Graph Representation Learning](https://arxiv.org/abs/2105.05682).
 
