@@ -38,8 +38,7 @@ If you use our code in your research, please cite the following article:
 @inproceedings{Jin2021MultiScaleCS,
   title={Multi-Scale Contrastive Siamese Networks for Self-Supervised Graph Representation Learning},
   author={Ming Jin and Yizhen Zheng and Yuan-Fang Li and Chen Gong and Chuan Zhou and Shirui Pan},
-  booktitle={The 30th International Joint Conference on Artificial Intelligence (IJCAI)}
+  booktitle={The 30th International Joint Conference on Artificial Intelligence (IJCAI)},
   year={2021}
-  url={https://arxiv.org/abs/2105.05682}
 }
 ```
