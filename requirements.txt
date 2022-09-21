@@ -31,4 +31,4 @@ torchaudio==0.7.0a0+a853dff
 torchdiffeq==0.2.1
 torchvision==0.8.2
 typing-extensions @ file:///home/ktietz/src/ci_mi/typing_extensions_1612808209620/work
-urllib3==1.26.3
+urllib3==1.26.5
